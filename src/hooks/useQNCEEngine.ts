@@ -10,54 +10,15 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { trackStoryEvent } from '../utils/analytics';
+import { createQNCEEngine, DEMO_STORY, type QNCEEngine } from 'qnce-engine';
 
-// Note: Importing QNCE engine - this is experimental
-// The exact API may vary based on the actual package implementation
-// For now, we'll create a compatible interface for testing
+// Now using the real QNCE engine package!
 
-interface QNCEEngineChoice {
-  text: string;
-  nextNodeId: string;
-  effects?: {
-    flags?: Record<string, any>;
-    variables?: {
-      curiosity?: number;
-      coherence?: number;
-      disruption?: number;
-      synchrony?: number;
-    };
-  };
-  requirements?: {
-    flags?: Record<string, any>;
-    variables?: Record<string, { min?: number; max?: number }>;
-  };
-}
-
-interface QNCEEngineState {
-  currentNodeId: string;
-  flags: Record<string, any>;
-  variables: {
-    curiosity: number;
-    coherence: number;
-    disruption: number;
-    synchrony: number;
-  };
-  history: string[];
-}
-
-// Experimental QNCE Engine Hook
+// Experimental QNCE Engine Hook using real package
 export const useQNCEEngine = () => {
-  const [engineState, setEngineState] = useState<QNCEEngineState>({
-    currentNodeId: 'forgotten_truth_intro',
-    flags: {},
-    variables: {
-      curiosity: 0,
-      coherence: 0,
-      disruption: 0,
-      synchrony: 0,
-    },
-    history: ['forgotten_truth_intro']
-  });
+  // Initialize with the real QNCE engine using DEMO_STORY
+  const [engine] = useState<QNCEEngine>(() => createQNCEEngine(DEMO_STORY));
+  const [engineState, setEngineState] = useState(() => engine.getState());
 
   const [performance, setPerformance] = useState({
     lastTransitionTime: 0,
@@ -66,80 +27,37 @@ export const useQNCEEngine = () => {
     memoryUsage: 0,
   });
 
-  // Experimental: Mock QNCE engine functionality for testing
-  // In a real integration, this would use the actual QNCE engine package
-  const mockEngine = {
-    createEngine: (_story?: any) => ({
-      getCurrentNode: () => ({
-        id: engineState.currentNodeId,
-        text: "This is experimental QNCE engine text",
-        choices: [
-          {
-            text: "Test Engine Choice 1",
-            nextNodeId: "test_node_1",
-            effects: {
-              variables: { curiosity: 1, disruption: 1 }
-            }
-          },
-          {
-            text: "Test Engine Choice 2", 
-            nextNodeId: "test_node_2",
-            effects: {
-              variables: { coherence: 1, synchrony: 1 }
-            }
-          }
-        ]
-      }),
-      makeChoice: (choiceIndex: number) => {
-        const startTime = window.performance.now();
-        
-        // Simulate engine choice processing
-        const choices = mockEngine.createEngine().getCurrentNode().choices;
-        const choice = choices[choiceIndex];
-        
-        if (choice) {
-          setEngineState(prev => {
-            const newState = { ...prev };
-            newState.currentNodeId = choice.nextNodeId;
-            newState.history = [...prev.history, choice.nextNodeId];
-            
-            if (choice.effects?.variables) {
-              Object.entries(choice.effects.variables).forEach(([key, value]) => {
-                if (typeof value === 'number') {
-                  newState.variables[key as keyof typeof newState.variables] += value;
-                }
-              });
-            }
-            
-            return newState;
-          });
-          
-          trackStoryEvent.choice(choice.nextNodeId);
-        }
-        
-        const endTime = window.performance.now();
-        const transitionTime = endTime - startTime;
-        
-        setPerformance(prev => ({
-          lastTransitionTime: transitionTime,
-          totalTransitions: prev.totalTransitions + 1,
-          averageTransitionTime: (prev.averageTransitionTime * prev.totalTransitions + transitionTime) / (prev.totalTransitions + 1),
-          memoryUsage: (window.performance as any).memory?.usedJSHeapSize || 0,
-        }));
-      },
-      getState: () => engineState,
-      reset: () => {
-        setEngineState({
-          currentNodeId: 'forgotten_truth_intro',
-          flags: {},
-          variables: { curiosity: 0, coherence: 0, disruption: 0, synchrony: 0 },
-          history: ['forgotten_truth_intro']
-        });
-      }
-    })
-  };
+  // Real QNCE engine choice handling
+  const makeChoice = useCallback((choiceIndex: number) => {
+    const startTime = window.performance.now();
+    
+    // Use the real engine's selectChoice method with choice object
+    const availableChoices = engine.getAvailableChoices();
+    const choice = availableChoices[choiceIndex];
+    
+    if (choice) {
+      engine.selectChoice(choice);
+      const newState = engine.getState();
+      setEngineState(newState);
+      trackStoryEvent.choice(newState.currentNodeId);
+    }
+    
+    const endTime = window.performance.now();
+    const transitionTime = endTime - startTime;
+    
+    setPerformance(prev => ({
+      lastTransitionTime: transitionTime,
+      totalTransitions: prev.totalTransitions + 1,
+      averageTransitionTime: (prev.averageTransitionTime * prev.totalTransitions + transitionTime) / (prev.totalTransitions + 1),
+      memoryUsage: (window.performance as any).memory?.usedJSHeapSize || 0,
+    }));
+  }, [engine]);
 
-  const engine = mockEngine.createEngine(null);
+  // Real QNCE engine reset
+  const reset = useCallback(() => {
+    engine.resetNarrative();
+    setEngineState(engine.getState());
+  }, [engine]);
 
   // Experimental: Performance monitoring
   useEffect(() => {
@@ -166,11 +84,11 @@ export const useQNCEEngine = () => {
   }, [backgroundProcess]);
 
   return {
-    // Engine interface
+    // Engine interface - using real QNCE engine
     currentNode: engine.getCurrentNode(),
     state: engineState,
-    makeChoice: engine.makeChoice,
-    reset: engine.reset,
+    makeChoice,
+    reset,
     
     // Performance metrics (experimental)
     performance,
@@ -181,6 +99,11 @@ export const useQNCEEngine = () => {
       getProfileData: () => performance,
       enableHotReload: () => console.log('Hot-reload enabled (experimental)'),
       generateAIContent: () => console.log('AI content generation (experimental)'),
+      // Real QNCE engine features
+      preloadNextNodes: () => engine.preloadNextNodes(),
+      warmCache: () => engine.warmCache(),
+      getBranchingEngine: () => engine.getBranchingEngine(),
+      getActiveFlows: () => engine.getActiveFlows(),
     }
   };
 };

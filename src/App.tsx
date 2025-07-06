@@ -2,9 +2,12 @@ import { useState } from 'react'
 import './App.css'
 import useQNCEEngine from './hooks/useQNCEEngine'
 import { trackUIEvent } from './utils/analytics'
+import GamePrototype, { type GameType } from './games/GamePrototype'
+import { EchoGardenSandbox } from './games/EchoGarden/EchoGardenSandbox'
 
 function App() {
-  const [activeExperiment, setActiveExperiment] = useState<'intro' | 'engine' | 'performance' | 'features'>('intro')
+  const [activeExperiment, setActiveExperiment] = useState<'intro' | 'engine' | 'performance' | 'features' | 'games' | 'echogarden'>('intro')
+  const [selectedGameType, setSelectedGameType] = useState<GameType>('strategy')
   const engineQNCE = useQNCEEngine()
 
   const experiments = [
@@ -12,6 +15,8 @@ function App() {
     { id: 'engine', name: '🔬 Engine Test', description: 'QNCE engine integration testing' },
     { id: 'performance', name: '⚡ Performance', description: 'Real-time performance monitoring' },
     { id: 'features', name: '🚀 Features', description: 'Advanced capabilities exploration' },
+    { id: 'games', name: '🎮 Game Prototypes', description: 'Testing QNCE with different game types' },
+    { id: 'echogarden', name: '🌱 EchoGarden', description: 'Energy meter component validation' },
   ]
 
   return (
@@ -105,12 +110,14 @@ function App() {
               </div>
               
               <div className="bg-white/5 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-3">Variable State</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>Curiosity: <span className="font-mono">{engineQNCE.state.variables.curiosity}</span></div>
-                  <div>Coherence: <span className="font-mono">{engineQNCE.state.variables.coherence}</span></div>
-                  <div>Disruption: <span className="font-mono">{engineQNCE.state.variables.disruption}</span></div>
-                  <div>Synchrony: <span className="font-mono">{engineQNCE.state.variables.synchrony}</span></div>
+                <h3 className="text-xl font-semibold mb-3">Flags State</h3>
+                <div className="space-y-1 text-sm">
+                  {Object.keys(engineQNCE.state.flags).length > 0 ? 
+                    Object.entries(engineQNCE.state.flags).map(([key, value]) => (
+                      <div key={key}>{key}: <span className="font-mono">{String(value)}</span></div>
+                    )) : 
+                    <div className="text-gray-400">No flags set</div>
+                  }
                 </div>
               </div>
             </div>
@@ -197,6 +204,47 @@ function App() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeExperiment === 'games' && (
+          <div>
+            <div className="bg-white/10 rounded-xl p-8 mb-8">
+              <h2 className="text-3xl font-bold mb-6 text-qnce-accent">🎮 Game Prototypes with QNCE Engine</h2>
+              
+              <div className="mb-6">
+                <p className="text-gray-300 mb-4">
+                  Testing QNCE engine's versatility across different game genres. Each prototype explores how narrative choice mechanics can enhance traditional gameplay.
+                </p>
+                
+                <div className="flex flex-wrap gap-3 mb-6">
+                  {(['strategy', 'puzzle', 'rpg', 'action'] as GameType[]).map((gameType) => (
+                    <button
+                      key={gameType}
+                      onClick={() => {
+                        setSelectedGameType(gameType);
+                        trackUIEvent.feature('game_prototype', gameType);
+                      }}
+                      className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                        selectedGameType === gameType
+                          ? 'bg-qnce-accent text-black font-bold qnce-glow'
+                          : 'bg-white/20 text-white hover:bg-white/30'
+                      }`}
+                    >
+                      {gameType.charAt(0).toUpperCase() + gameType.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <GamePrototype gameType={selectedGameType} />
+          </div>
+        )}
+
+        {activeExperiment === 'echogarden' && (
+          <div>
+            <EchoGardenSandbox />
           </div>
         )}
 

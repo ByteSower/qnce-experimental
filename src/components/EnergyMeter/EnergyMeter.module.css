@@ -1,0 +1,138 @@
+/* EnergyMeter Component Styles */
+.energyMeter {
+  padding: 1rem;
+  background-color: #f1f5f9;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.energyLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.energyText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.resetButton {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+}
+
+.resetButton:hover {
+  color: #374151;
+}
+
+.resetButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #cbd5e1;
+}
+
+.progressContainer {
+  position: relative;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 9999px;
+  transition: all 0.5s ease-out;
+}
+
+.progressShine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.5s;
+}
+
+.harvestContainer {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+}
+
+.harvestButton {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.harvestButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5);
+}
+
+.harvestButtonEnabled {
+  background-color: #22c55e;
+  color: white;
+}
+
+.harvestButtonEnabled:hover {
+  background-color: #16a34a;
+  transform: scale(1.05);
+}
+
+.harvestButtonEnabled:active {
+  transform: scale(0.95);
+}
+
+.harvestButtonDisabled {
+  background-color: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.statusIndicator {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.statusText {
+  font-size: 0.75rem;
+}
+
+.statusTextMaxed {
+  color: #ea580c;
+  font-weight: 500;
+}
+
+.statusTextNormal {
+  color: #64748b;
+}
+
+/* Energy level color classes */
+.energyFillLow {
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+}
+
+.energyFillMedium {
+  background: linear-gradient(90deg, #facc15, #eab308);
+}
+
+.energyFillHigh {
+  background: linear-gradient(90deg, #fb923c, #f97316);
+}

@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`EnergyMeter Component matches snapshot 1`] = `
+<div>
+  <div>
+    <span>
+      GP: 0 / 100
+    </span>
+    <button
+      aria-label="Reset energy to starting value"
+    >
+      Reset
+    </button>
+  </div>
+  <div
+    aria-label="Energy level: 0 out of 100 growth points"
+    aria-valuemax="100"
+    aria-valuemin="0"
+    aria-valuenow="0"
+    role="progressbar"
+    style="width: 300px; height: 24px;"
+  >
+    <div
+      class="undefined undefined"
+      style="width: 0%;"
+    />
+    <div
+      style="width: 0%;"
+    />
+  </div>
+  <div>
+    <button
+      aria-label="Harvest light to gain 1 growth point"
+      class="
+            undefined
+            undefined
+          "
+    >
+      🌱 Harvest Light
+    </button>
+  </div>
+  <div>
+    <span
+      class="undefined undefined"
+    >
+      Collecting solar energy...
+    </span>
+  </div>
+</div>
+`;

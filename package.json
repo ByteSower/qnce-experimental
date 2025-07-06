@@ -5,19 +5,32 @@
   "type": "module",
   "description": "Experimental environment for QNCE engine testing and development",
   "scripts": {
-    "dev": "vite",
+    "dev": "cd \"$(dirname \"$0\")\" && vite --host",
+    "dev:force": "cd /Users/ball/VSE-WS/qnce-experimental && vite --host --port 3000",
+    "dev:debug": "cd \"$(dirname \"$0\")\" && vite --host --debug",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "experiment": "node experiments/run.js"
+    "build:analyze": "npm run build && npx vite-bundle-analyzer dist",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "type-check": "tsc -b --noEmit",
+    "preview": "vite preview --host",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "experiment": "node experiments/run.js",
+    "qnce:test": "node -e \"const { createQNCEEngine, DEMO_STORY } = require('qnce-engine'); console.log('QNCE Engine Test:', createQNCEEngine(DEMO_STORY).getCurrentNode())\"",
+    "game:prototype": "echo 'Game prototype development mode' && npm run dev"
   },
   "dependencies": {
+    "qnce-engine": "latest",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "qnce-engine": "latest"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
@@ -26,8 +39,12 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^30.0.4",
+    "jest-environment-jsdom": "^30.0.4",
     "postcss": "^8.5.5",
     "tailwindcss": "^3.3.3",
+    "ts-jest": "^29.4.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5"
