@@ -143,6 +143,23 @@ export const GrowthNarrator: React.FC<GrowthNarratorProps> = ({
 
         <div className={styles.content}>
           <div className={styles.narrative}>
+            {/* Display narrative image if available */}
+            {currentNode.assetPlaceholders?.visualCue && (
+              <img 
+                src={currentNode.assetPlaceholders.visualCue}
+                alt="Narrative visual"
+                className={styles.narrativeImage}
+                onLoad={() => {
+                  console.log('✅ Image loaded successfully:', currentNode.assetPlaceholders.visualCue);
+                }}
+                onError={(e) => {
+                  console.error('❌ Failed to load narrative image:', currentNode.assetPlaceholders.visualCue);
+                  console.error('Error details:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
+            
             <p className={styles.text}>
               {currentNode.text}
             </p>

@@ -26,7 +26,7 @@ export const sproutEmergence: NarrativeSegment = {
           : `You bud awkwardly, unsteady but determined to find your purpose.`;
       },
       assetPlaceholders: {
-        visualCue: 'emergence.png',
+        visualCue: '/assets/echogarden/EG-image2.png',
         audioCue: 'soft_chime.mp3'
       },
       feedbackHook: { milestone: 'sproutEmergence', delay: 1000 },

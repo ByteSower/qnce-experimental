@@ -22,7 +22,7 @@ export const seedlingAwakening: NarrativeSegment = {
       nodeId: 'eg_start',
       text: `A tender shoot unfurls beneath the pale light. You feel warmth trickling through your veins for the first time.`,
       assetPlaceholders: {
-        visualCue: 'sprout.png',
+        visualCue: '/assets/echogarden/EG-Thumbnail.png',
         audioCue: 'soft_breeze.mp3'
       },
       feedbackHook: { milestone: 'seedlingAwakening', delay: 0 },

@@ -135,33 +135,80 @@ export const EchoGardenSandbox: React.FC = () => {
                 labelFormat={(energy, cap) => `Growth Points: ${energy}/${cap}`}
                 energyState={narrativeEnergy}
               />
-              
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <button 
-                  onClick={() => {
-                    console.log('Water button clicked, current energy:', narrativeEnergy.energy);
-                    narrativeEnergy.addEnergy(5);
-                  }}
-                  disabled={narrativeEnergy.isMaxed}
-                  className={`px-4 py-2 rounded transition-colors ${
-                    narrativeEnergy.isMaxed 
-                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
-                      : 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700'
-                  }`}
-                >
-                  💧 Water (+5 GP) {narrativeEnergy.isMaxed ? '(Max)' : ''}
-                </button>
-                <button 
-                  onClick={() => {
-                    console.log('Reset button clicked');
-                    narrativeEnergy.resetEnergy();
-                    setCurrentMilestone(null);
-                    setNarrativeFlags({});
-                  }}
-                  className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 active:bg-orange-700 transition-colors"
-                >
-                  🌱 Restart Growth
-                </button>
+               <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <button 
+                    onClick={() => {
+                      console.log('Quick test button clicked - jumping to 10 GP');
+                      const currentEnergy = narrativeEnergy.energy;
+                      const targetEnergy = 10;
+                      if (currentEnergy < targetEnergy) {
+                        narrativeEnergy.addEnergy(targetEnergy - currentEnergy);
+                      }
+                    }}
+                    className="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 active:bg-purple-700 transition-colors text-sm"
+                  >
+                    🚀 Test M1
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      console.log('Quick test button clicked - jumping to 25 GP');
+                      const currentEnergy = narrativeEnergy.energy;
+                      const targetEnergy = 25;
+                      if (currentEnergy < targetEnergy) {
+                        narrativeEnergy.addEnergy(targetEnergy - currentEnergy);
+                      }
+                    }}
+                    className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 active:bg-blue-700 transition-colors text-sm"
+                  >
+                    🌿 Test M2
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      console.log('Quick test button clicked - jumping to 50 GP');
+                      const currentEnergy = narrativeEnergy.energy;
+                      const targetEnergy = 50;
+                      if (currentEnergy < targetEnergy) {
+                        narrativeEnergy.addEnergy(targetEnergy - currentEnergy);
+                      }
+                    }}
+                    className="bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600 active:bg-indigo-700 transition-colors text-sm"
+                  >
+                    � Test M3
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => {
+                      console.log('Water button clicked, current energy:', narrativeEnergy.energy);
+                      narrativeEnergy.addEnergy(5);
+                    }}
+                    disabled={narrativeEnergy.isMaxed}
+                    className={`px-4 py-2 rounded transition-colors ${
+                      narrativeEnergy.isMaxed 
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                        : 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700'
+                    }`}
+                  >
+                    💧 Water (+5 GP)
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      console.log('Reset button clicked');
+                      narrativeEnergy.resetEnergy();
+                      setCurrentMilestone(null);
+                      setNarrativeFlags({});
+                      setReachedMilestones(new Set());
+                    }}
+                    className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 active:bg-orange-700 transition-colors"
+                  >
+                    🌱 Restart Growth
+                  </button>
+                </div>
               </div>
             </div>
 

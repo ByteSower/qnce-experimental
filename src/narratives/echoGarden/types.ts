@@ -89,6 +89,7 @@ export function convertToBasicQNCEStory(segment: NarrativeSegment, variables: QN
     nodes: segment.nodes.map(node => ({
       id: node.nodeId,
       text: typeof node.text === 'function' ? node.text(variables) : node.text,
+      assetPlaceholders: node.assetPlaceholders, // Preserve asset placeholders
       choices: node.choices.map(choice => ({
         text: choice.choiceText,
         nextNodeId: choice.nextNodeId || '', // Convert null to empty string for QNCE compatibility

@@ -77,6 +77,17 @@
   margin-bottom: 2rem;
 }
 
+.narrativeImage {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 8px;
+  margin: 0 auto 1.5rem auto;
+  display: block;
+  box-shadow: 0 4px 16px rgba(79, 209, 199, 0.2);
+  border: 1px solid rgba(79, 209, 199, 0.3);
+}
+
 .text {
   color: #e0e6ed;
   font-size: 1.1rem;

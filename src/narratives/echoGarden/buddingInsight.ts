@@ -27,7 +27,7 @@ export const buddingInsight: NarrativeSegment = {
         return `Your thoughts flutter, glimpsing fragments of a greater tapestry yet to be fully seen.`;
       },
       assetPlaceholders: {
-        visualCue: 'blossom.png',
+        visualCue: '/assets/echogarden/EG-image3.png',
         audioCue: 'reveal_tone.mp3'
       },
       feedbackHook: { milestone: 'buddingInsight', delay: 2000 },
