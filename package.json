@@ -18,7 +18,17 @@
     "test:coverage": "jest --coverage",
     "experiment": "node experiments/run.js",
     "qnce:test": "node -e \"const { createQNCEEngine, DEMO_STORY } = require('qnce-engine'); console.log('QNCE Engine Test:', createQNCEEngine(DEMO_STORY).getCurrentNode())\"",
-    "game:prototype": "echo 'Game prototype development mode' && npm run dev"
+    "qnce:audit": "npx qnce-audit",
+    "qnce:perf": "npx qnce-perf live",
+    "qnce:perf-dashboard": "npx qnce-perf dashboard",
+    "qnce:init": "npx qnce-init",
+    "ci:audit": "find src/narratives -name '*.ts' -o -name '*.json' | xargs -I {} npx qnce-audit {} || exit 1",
+    "ci:performance": "npm run qnce:test && npm test && npm run type-check",
+    "game:prototype": "echo 'Game prototype development mode' && npm run dev",
+    "performance:monitor": "npm run qnce:perf",
+    "validate:stories": "npm run qnce:audit stories/seedling-awakening.json && echo '✅ JSON stories validated'",
+    "validate:ts-stories": "node scripts/extract-stories.cjs src/narratives/echoGarden/growthMilestones.ts",
+    "ci:validate": "npm run validate:stories && npm run validate:ts-stories && npm run type-check"
   },
   "dependencies": {
     "qnce-engine": "latest",

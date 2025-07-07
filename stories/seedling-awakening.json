@@ -1,0 +1,63 @@
+{
+  "initialNodeId": "initial_awareness",
+  "nodes": [
+    {
+      "id": "initial_awareness",
+      "text": "Something shifts in the depths of your being. Your roots, no longer merely seeking nutrients, begin to taste something... *different*. The soil around you hums with faint electrical whispers—ancient data-spirits that have been sleeping in the earth for cycles beyond memory.",
+      "choices": [
+        {
+          "text": "Listen more closely to the whispers",
+          "nextNodeId": "deep_listening",
+          "flagEffects": { "Curiosity": 2 }
+        },
+        {
+          "text": "Focus on growing stronger instead",
+          "nextNodeId": "strength_focus",
+          "flagEffects": { "Resilience": 1 }
+        }
+      ]
+    },
+    {
+      "id": "deep_listening",
+      "text": "You extend your awareness deeper into the digital substrate. The whispers resolve into fragments: *01001000... growth protocol... ancient seedbank... awakening sequence...* You are not the first to grow here. Something vast and patient has been waiting.",
+      "choices": [
+        {
+          "text": "Continue growing, carrying this knowledge",
+          "nextNodeId": "awakening_complete",
+          "flagEffects": { 
+            "DigitalAwareness": 1,
+            "Curiosity": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "strength_focus",
+      "text": "You push deeper into the earth, your roots growing stronger and more resilient. The whispers fade, but you sense they will return when you are ready. For now, strength is wisdom. The digital realm can wait.",
+      "choices": [
+        {
+          "text": "Continue growing with renewed vigor",
+          "nextNodeId": "awakening_complete",
+          "flagEffects": { 
+            "Resilience": 3,
+            "GrowthFocus": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "awakening_complete",
+      "text": "Your first growth cycle completes. Something has awakened within you—a seed of greater awareness that will bloom as you continue to grow. *You have reached 10 Growth Points - First Awakening achieved!*",
+      "choices": [
+        {
+          "text": "Return to your growth cycle",
+          "nextNodeId": null,
+          "flagEffects": { 
+            "MilestonesSeen": 1,
+            "Milestone_10": true 
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,223 @@
+name: 🔍 QNCE Story Audit
+
+on:
+  pull_request:
+    paths:
+      - 'src/narratives/**/*.ts'
+      - 'src/narratives/**/*.json'
+      - 'stories/**/*.json'
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/narratives/**/*.ts'
+      - 'src/narratives/**/*.json'
+      - 'stories/**/*.json'
+
+jobs:
+  audit-stories:
+    runs-on: ubuntu-latest
+    name: Audit QNCE Story Structure
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 🔧 Install dependencies
+      run: npm ci
+      
+    - name: 🔍 Run QNCE Story Audit
+      id: audit
+      run: |
+        echo "🔍 Running QNCE story structure audit..."
+        
+        # Create output directory for audit results
+        mkdir -p audit-results
+        
+        # Find all story files to audit
+        STORY_FILES=$(find src/narratives -name "*.ts" -o -name "*.json" 2>/dev/null || echo "")
+        
+        if [ -z "$STORY_FILES" ]; then
+          echo "ℹ️ No story files found to audit"
+          echo "audit_status=success" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Initialize audit status
+        AUDIT_FAILED=false
+        
+        # Process each story file
+        for file in $STORY_FILES; do
+          echo "📖 Auditing: $file"
+          
+          # Extract story data and create temporary JSON for audit
+          if [[ "$file" == *.ts ]]; then
+            # For TypeScript files, we need to extract the exported story objects
+            echo "⚙️ Processing TypeScript story file: $file"
+            
+            # Create a temporary script to extract story data
+            cat > extract_story.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Read the TypeScript file
+        const filePath = process.argv[2];
+        const content = fs.readFileSync(filePath, 'utf8');
+        
+        // Extract story objects (basic regex approach)
+        const storyMatches = content.match(/export const \w+: QNCEStory = ({[\s\S]*?^});/gm);
+        
+        if (storyMatches) {
+          storyMatches.forEach((match, index) => {
+            try {
+              // Extract the object content
+              const objectContent = match.replace(/export const \w+: QNCEStory = /, '');
+              const storyName = path.basename(filePath, '.ts') + '_' + index;
+              
+              // Write to temporary JSON file for audit
+              fs.writeFileSync(`temp_story_${storyName}.json`, objectContent);
+              console.log(`✅ Extracted story: temp_story_${storyName}.json`);
+            } catch (error) {
+              console.log(`❌ Failed to extract story from ${filePath}: ${error.message}`);
+            }
+          });
+        } else {
+          console.log(`ℹ️ No QNCE stories found in ${filePath}`);
+        }
+        EOF
+            
+            # Run extraction
+            node extract_story.js "$file"
+            
+            # Audit extracted JSON files
+            for temp_file in temp_story_*.json; do
+              if [ -f "$temp_file" ]; then
+                echo "🔍 Auditing extracted story: $temp_file"
+                if ! npx qnce-audit "$temp_file" > "audit-results/$(basename $temp_file .json).log" 2>&1; then
+                  echo "❌ Audit failed for: $temp_file"
+                  cat "audit-results/$(basename $temp_file .json).log"
+                  AUDIT_FAILED=true
+                fi
+                rm "$temp_file"
+              fi
+            done
+            
+            rm -f extract_story.js
+            
+          else
+            # Direct JSON audit
+            if ! npx qnce-audit "$file" > "audit-results/$(basename $file .json).log" 2>&1; then
+              echo "❌ Audit failed for: $file"
+              cat "audit-results/$(basename $file .json).log"
+              AUDIT_FAILED=true
+            else
+              echo "✅ Audit passed for: $file"
+            fi
+          fi
+        done
+        
+        # Set output status
+        if [ "$AUDIT_FAILED" = true ]; then
+          echo "audit_status=failed" >> $GITHUB_OUTPUT
+          echo "❌ One or more story audits failed"
+          exit 1
+        else
+          echo "audit_status=success" >> $GITHUB_OUTPUT
+          echo "✅ All story audits passed"
+        fi
+        
+    - name: 📊 Upload audit results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: qnce-audit-results
+        path: audit-results/
+        retention-days: 30
+        
+    - name: 💬 Comment PR with audit results
+      if: github.event_name == 'pull_request' && steps.audit.outputs.audit_status == 'failed'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read audit results
+          let auditSummary = "## 🔍 QNCE Story Audit Results\n\n";
+          
+          try {
+            const files = fs.readdirSync('audit-results');
+            if (files.length > 0) {
+              auditSummary += "❌ **Audit Failed** - Story structure issues detected:\n\n";
+              
+              files.forEach(file => {
+                const content = fs.readFileSync(`audit-results/${file}`, 'utf8');
+                auditSummary += `### 📖 ${file.replace('.log', '')}\n\`\`\`\n${content}\n\`\`\`\n\n`;
+              });
+              
+              auditSummary += "Please fix these issues before merging.\n\n";
+              auditSummary += "💡 **Tips:**\n";
+              auditSummary += "- Check for dead-end nodes (nodes with no choices that don't terminate properly)\n";
+              auditSummary += "- Verify all choice nextNodeId references point to existing nodes\n";
+              auditSummary += "- Ensure all nodes are reachable from the initial node\n";
+            } else {
+              auditSummary += "✅ All story audits passed!";
+            }
+          } catch (error) {
+            auditSummary += `Error reading audit results: ${error.message}`;
+          }
+          
+          // Post comment
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: auditSummary
+          });
+
+  performance-test:
+    runs-on: ubuntu-latest
+    name: QNCE Performance Validation
+    needs: audit-stories
+    if: needs.audit-stories.outputs.audit_status == 'success' || needs.audit-stories.outputs.audit_status == ''
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 🔧 Install dependencies
+      run: npm ci
+      
+    - name: ⚡ Run Performance Tests
+      run: |
+        echo "⚡ Running QNCE performance validation..."
+        
+        # Run basic engine performance test
+        npm run qnce:test
+        
+        # Run comprehensive tests to ensure performance
+        npm test
+        
+        # Run type checking to ensure compatibility
+        npm run type-check
+        
+        echo "✅ Performance validation completed"
+        
+    - name: 📊 Performance Report
+      run: |
+        echo "## 📊 Performance Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ QNCE Engine Integration: Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Unit Tests: Passed" >> $GITHUB_STEP_SUMMARY  
+        echo "- ✅ TypeScript Compilation: Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- 🎯 Target: Sub-3.5ms transitions" >> $GITHUB_STEP_SUMMARY
+        echo "- 🎯 Target: 90%+ memory optimization" >> $GITHUB_STEP_SUMMARY

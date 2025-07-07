@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { EnergyMeter } from '../../components/EnergyMeter';
 import { GrowthNarrator } from '../../components/GrowthNarrator';
+import { PerformanceMonitor, type PerformanceMetrics } from '../../components/PerformanceMonitor';
 import { useEnergy } from '../../hooks/useEnergy';
 import { useGrowthMilestones } from '../../hooks/useGrowthMilestones';
-import type { GrowthMilestoneEvent } from '../../hooks/useGrowthMilestones';
 
 /**
  * EchoGarden Development Sandbox
  * Live testing environment for EnergyMeter component with narrative integration
  */
 export const EchoGardenSandbox: React.FC = () => {
-  const [currentMilestone, setCurrentMilestone] = useState<GrowthMilestoneEvent | null>(null);
+  const [currentMilestone, setCurrentMilestone] = useState<number | null>(null);
   const [narrativeFlags, setNarrativeFlags] = useState<Record<string, any>>({});
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | null>(null);
+  const [showPerformanceDetails, setShowPerformanceDetails] = useState(false);
 
   // Enhanced energy system with narrative integration
   const narrativeEnergy = useEnergy({ 
@@ -21,12 +23,27 @@ export const EchoGardenSandbox: React.FC = () => {
     cap: 100 
   });
 
-  const milestones = useGrowthMilestones(narrativeEnergy.energy, {
-    onMilestoneReached: (event) => {
-      console.log('Milestone reached:', event);
-      setCurrentMilestone(event);
+  const [reachedMilestones, setReachedMilestones] = useState<Set<number>>(new Set());
+
+  // Use the new useGrowthMilestones hook with callback-based API
+  useGrowthMilestones({
+    milestones: [10, 25, 50],
+    currentEnergy: narrativeEnergy.energy,
+    onMilestone: (milestone) => {
+      console.log(`🌱 Milestone reached: ${milestone} GP!`);
+      setCurrentMilestone(milestone);
+      setReachedMilestones(prev => new Set([...prev, milestone]));
     }
   });
+
+  // Calculate milestone progress
+  const milestoneThresholds = [10, 25, 50];
+  const nextMilestone = milestoneThresholds.find(threshold => 
+    !reachedMilestones.has(threshold) && threshold > narrativeEnergy.energy
+  );
+  const lastMilestone = [...reachedMilestones].sort((a, b) => b - a)[0] || null;
+  const progressToNext = nextMilestone ? 
+    Math.min(narrativeEnergy.energy / nextMilestone, 1) : 1;
 
   const handleNarrativeComplete = (threshold: number, flags: Record<string, any>) => {
     console.log(`Narrative complete for milestone ${threshold}:`, flags);
@@ -34,8 +51,20 @@ export const EchoGardenSandbox: React.FC = () => {
     setCurrentMilestone(null);
   };
 
-  const handleClosNarrative = () => {
+  const handleCloseNarrative = () => {
     setCurrentMilestone(null);
+  };
+
+  const handlePerformanceUpdate = (metrics: PerformanceMetrics) => {
+    setPerformanceMetrics(metrics);
+    
+    // Log performance alerts for development
+    if (metrics.transitionTime > 3.5) {
+      console.warn('⚠️ Transition time exceeds target:', metrics.transitionTime + 'ms');
+    }
+    if (metrics.cacheHitRate < 95) {
+      console.warn('⚠️ Cache hit rate below target:', metrics.cacheHitRate + '%');
+    }
   };
 
   return (
@@ -45,10 +74,47 @@ export const EchoGardenSandbox: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-800 mb-2">
             🌱 EchoGarden Narrative Sandbox
           </h1>
-          <p className="text-slate-600">
-            Testing EnergyMeter with integrated QNCE narrative milestones
+          <p className="text-slate-600 mb-4">
+            Testing EnergyMeter with integrated QNCE narrative milestones and performance monitoring
           </p>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowPerformanceDetails(!showPerformanceDetails)}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                showPerformanceDetails 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+              }`}
+            >
+              {showPerformanceDetails ? '📊 Hide Performance' : '📊 Show Performance'}
+            </button>
+            
+            {performanceMetrics && (
+              <div className="flex items-center gap-4 text-sm">
+                <div className={`px-2 py-1 rounded ${
+                  performanceMetrics.transitionTime <= 3.5 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  ⚡ {performanceMetrics.transitionTime.toFixed(2)}ms
+                </div>
+                <div className={`px-2 py-1 rounded ${
+                  performanceMetrics.cacheHitRate >= 95 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  📈 {performanceMetrics.cacheHitRate.toFixed(1)}%
+                </div>
+              </div>
+            )}
+          </div>
         </header>
+
+        {/* QNCE Performance Monitor */}
+        {showPerformanceDetails && (
+          <PerformanceMonitor 
+            isActive={true}
+            onMetricsUpdate={handlePerformanceUpdate}
+            maxSamples={50}
+          />
+        )}
 
         {/* Narrative Energy System */}
         <div className="mb-8 bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border-2 border-green-200">
@@ -106,22 +172,22 @@ export const EchoGardenSandbox: React.FC = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Next Milestone:</span>
-                  <span className="font-mono">{milestones.nextMilestone || 'Complete!'}</span>
+                  <span className="font-mono">{nextMilestone || 'Complete!'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Progress:</span>
-                  <span className="font-mono">{Math.round(milestones.progressToNext * 100)}%</span>
+                  <span className="font-mono">{Math.round(progressToNext * 100)}%</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Last Reached:</span>
-                  <span className="font-mono">{milestones.lastMilestone || 'None'}</span>
+                  <span className="font-mono">{lastMilestone || 'None'}</span>
                 </div>
               </div>
 
               <div className="mt-3">
                 <div className="text-xs text-gray-500 mb-1">Reached Milestones:</div>
                 <div className="flex flex-wrap gap-1">
-                  {Array.from(milestones.reachedMilestones).map(threshold => (
+                  {Array.from(reachedMilestones).map(threshold => (
                     <span 
                       key={threshold}
                       className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs"
@@ -243,7 +309,7 @@ export const EchoGardenSandbox: React.FC = () => {
       <GrowthNarrator 
         milestoneEvent={currentMilestone}
         onNarrativeComplete={handleNarrativeComplete}
-        onClose={handleClosNarrative}
+        onClose={handleCloseNarrative}
       />
     </div>
   );

@@ -7,13 +7,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { createQNCEEngine } from 'qnce-engine';
-import { growthMilestones, type GrowthThreshold } from '../../narratives/echoGarden/growthMilestones';
-import type { GrowthMilestoneEvent } from '../../hooks/useGrowthMilestones';
+import { getNarrativeSegment, convertToBasicQNCEStory, type QNCEVariables } from '../../narratives/echoGarden';
 import styles from './GrowthNarrator.module.css';
 
 interface GrowthNarratorProps {
-  milestoneEvent: GrowthMilestoneEvent | null;
-  onNarrativeComplete?: (threshold: GrowthThreshold, flags: Record<string, any>) => void;
+  milestoneEvent: number | null; // Now takes milestone threshold number directly
+  onNarrativeComplete?: (threshold: number, flags: Record<string, any>) => void;
   onClose?: () => void;
   className?: string;
 }
@@ -36,25 +35,24 @@ export const GrowthNarrator: React.FC<GrowthNarratorProps> = ({
       return;
     }
 
-    const story = growthMilestones[milestoneEvent.threshold as keyof typeof growthMilestones];
-    if (!story) {
-      console.warn(`No story found for milestone ${milestoneEvent.threshold}`);
+    const narrativeSegment = getNarrativeSegment(milestoneEvent);
+    if (!narrativeSegment) {
+      console.warn(`No narrative segment found for milestone ${milestoneEvent}`);
       return;
     }
 
     try {
-      // Convert our story format to match QNCE engine expectations
-      const qnceStory = {
-        ...story,
-        nodes: story.nodes.map(node => ({
-          ...node,
-          choices: node.choices.map(choice => ({
-            text: choice.text,
-            nextNodeId: choice.nextNodeId || '', // QNCE expects string, not null
-            flagEffects: choice.flagEffects || {}
-          }))
-        }))
+      // Initialize variables with current flags
+      const variables: QNCEVariables = {
+        coherence: 0,
+        synchrony: 0,
+        curiosity: 0,
+        disruption: 0,
+        ...accumulatedFlags
       };
+
+      // Convert enhanced narrative segment to basic QNCE story format
+      const qnceStory = convertToBasicQNCEStory(narrativeSegment, variables);
       
       const engine = createQNCEEngine(qnceStory);
       setQNCEEngine(engine);
@@ -97,7 +95,7 @@ export const GrowthNarrator: React.FC<GrowthNarratorProps> = ({
   // Handle narrative completion
   const handleNarrativeComplete = () => {
     if (milestoneEvent) {
-      onNarrativeComplete?.(milestoneEvent.threshold, accumulatedFlags);
+      onNarrativeComplete?.(milestoneEvent, accumulatedFlags);
     }
     handleClose();
   };
@@ -132,7 +130,7 @@ export const GrowthNarrator: React.FC<GrowthNarratorProps> = ({
       <div className={styles.modal}>
         <div className={styles.header}>
           <h2 className={styles.title}>
-            Growth Milestone: {milestoneEvent.threshold} GP
+            Growth Milestone: {milestoneEvent} GP
           </h2>
           <button 
             className={styles.closeButton}
